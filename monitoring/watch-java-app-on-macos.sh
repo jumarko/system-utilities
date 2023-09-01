@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# WORKS ONLY ON LINUX!
+# TEST ONLY ON MACOS!
 # --------------------
 # You can run it like this and keep running for a long time
 # then examine the monitor.log
@@ -17,37 +17,26 @@ echo "==========================================================================
 
 echo
 echo "--------------------------------------------------------------------------------"
-echo "Memory stats:"
+echo "Top processes - sorted by memory:"
 echo "--------------------------------------------------------------------------------"
-echo "System:"
-free -m
-echo
-# more verbose - uncomment if you want
-# echo "System Details: /proc/meninfo"
-# cat /proc/meminfo
+top -l 1 -n 20 -o mem
 
 echo
 echo "--------------------------------------------------------------------------------"
 echo "Open files:"
 echo "--------------------------------------------------------------------------------"
 echo "System:"
-cat /proc/sys/fs/file-nr
+sysctl -a | grep num_files | grep -Eo '\d+'
 echo
 echo "java process:"
-ls -1 /proc/"${JAVA_PID}"/fd | wc -l
-
-
-echo
-echo "--------------------------------------------------------------------------------"
-echo "Top processes - sorted by memory:"
-echo "--------------------------------------------------------------------------------"
-top -b -n1 -o %MEM | head -n20
+lsof -p "${JAVA_PID}" | wc -l
 
 echo
 echo "--------------------------------------------------------------------------------"
 echo "Threads - java process"
 echo "--------------------------------------------------------------------------------"
-ps -p "${JAVA_PID}" -lfT | wc -l
+# https://apple.stackexchange.com/questions/86511/thread-count-of-process-x
+ps -M "${JAVA_PID}" | tail +2 | wc -l
 echo
 # verbose - uncomment if needed
 # echo "threads stacks"
@@ -58,7 +47,7 @@ echo
 echo "--------------------------------------------------------------------------------"
 echo "Java process memory details"
 echo "--------------------------------------------------------------------------------"
- only when jstat is available
+# only when jstat is available
 command -v jstat  &> /dev/null && jstat -gc -t "${JAVA_PID}"
 
 echo -e "\n\n\n"
